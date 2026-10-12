@@ -7,7 +7,7 @@ struct GlobalVariables {
 workflow Globals {
   input {
   GlobalVariables glob ={
-        "monitoring_script": "s3://ultimagen-workflow-resources-us-east-1/monitor_1.0.sh",
+        "monitoring_script": "/scratch/seokim/UltimaSTR/references/monitor_1.0.sh",
         "str_genotyper_docker": "ultimagenomics/str_genotyper:1.1.0_da93d4a"
 }
 }

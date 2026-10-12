@@ -26,8 +26,6 @@ version 1.0
 # - genotypes_vcf: Final genotype calls in VCF format with per-allele support counts
 
 import "tasks/globals.wdl" as Globals
-import "tasks/structs.wdl"
-import "tasks/genome_resources.wdl" as GenomeResourcesLib
 
 workflow STRGenotyper {
     input {
@@ -38,8 +36,11 @@ workflow STRGenotyper {
         File cram_index
 
         # Genome resources
-        String reference_genome = "hg38"
-        File variant_catalog  # Optional override for custom catalog
+        # Take files directly
+        File reference_fasta
+        File reference_fasta_index
+        File variant_catalog
+
         
         # Optional parameters
         Int ref_padding = 500
@@ -85,7 +86,6 @@ workflow STRGenotyper {
         }
     }
 
-    #@wv reference_genome in {"hg38", "hg38_nist_v3_with_decoy"}
     
     parameter_meta {
         base_file_name: {
@@ -103,9 +103,14 @@ workflow STRGenotyper {
             type: "File",
             category: "input_required"
         }
-        reference_genome: {
-            help: "Reference genome name (supported: 'hg38', 'hg38_nist_v3_with_decoy'). Automatically loads genome-specific reference files.",
-            type: "input_required",
+        reference_fasta: {
+            help: "Reference genome FASTA the CRAM was aligned to (local path)",
+            type: "File",
+            category: "input_required"
+        }
+        reference_fasta_index: {
+            help: "FASTA index (.fai) for reference_fasta",
+            type: "File",
             category: "input_required"
         }
         variant_catalog: {
@@ -223,17 +228,7 @@ workflow STRGenotyper {
     call Globals.Globals as GlobalsCall
     GlobalVariables global = GlobalsCall.global_dockers
 
-    String monitoring_script = select_first([monitoring_script_input, global.monitoring_script])
-
-    call GenomeResourcesLib.GenomeResourcesWorkflow as GenomeResourcesCall
-
-    References references = object {
-        ref_fasta: GenomeResourcesCall.resources[reference_genome].ref_fasta,
-        ref_fasta_index: GenomeResourcesCall.resources[reference_genome].ref_fasta_index,
-        ref_dict: GenomeResourcesCall.resources[reference_genome].ref_dict
-    }
-
-
+    File monitoring_script = select_first([monitoring_script_input, global.monitoring_script])
 
     # Default memory is 4GB, can be overridden
     Int memory_gb = select_first([memory_gb_override, 4])
@@ -244,8 +239,8 @@ workflow STRGenotyper {
             cram_file = cram_file,
             cram_index = cram_index,
             variant_catalog = variant_catalog,
-            reference_fasta = references.ref_fasta,
-            reference_fasta_index = references.ref_fasta_index,
+            reference_fasta = reference_fasta,
+            reference_fasta_index = reference_fasta_index,
             ref_padding = ref_padding,
             min_repeat_count = min_repeat,
             max_repeat_count = max_repeat,
@@ -301,7 +296,7 @@ task GenotypeSTR {
         Int threads
         Int memory_gb
         String docker
-        String monitoring_script
+        File monitoring_script
         Int preemptible_tries
         Boolean no_address
     }

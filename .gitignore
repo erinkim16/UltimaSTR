@@ -1,5 +1,6 @@
 references/
 containers/
+catalogs/
 wdl_cache/
 wdl-env/
 logs/
