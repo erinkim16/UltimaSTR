@@ -1,0 +1,11 @@
+references/
+containers/
+wdl_cache/
+wdl-env/
+logs/
+batches/
+*_MultiSampleSTRGenotyper/
+*_STRGenotyper/
+_LAST
+__pycache__/
+samples.tsv
