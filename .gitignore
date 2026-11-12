@@ -10,3 +10,6 @@ batches/
 _LAST
 __pycache__/
 samples.tsv
+test_rung*/
+slurm-*.out
+rung*_inputs.json
