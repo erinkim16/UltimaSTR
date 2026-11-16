@@ -52,6 +52,7 @@ workflow STRGenotyper {
         
         # Resource configuration
         Int threads = 2
+        Int parallel_loci = 1
         Int? memory_gb_override
         
         # Output options (set to false to skip CSV outputs for large catalogs)
@@ -254,6 +255,7 @@ workflow STRGenotyper {
             micro_allele_consensus_ratio = micro_allele_consensus_ratio,
             micro_allele_min_reads = micro_allele_min_reads,
             threads = threads,
+            parallel_loci = parallel_loci,
             memory_gb = memory_gb,
             docker = global.str_genotyper_docker,
             monitoring_script = monitoring_script,
@@ -294,6 +296,7 @@ task GenotypeSTR {
         Int micro_allele_min_reads
 
         Int threads
+        Int parallel_loci
         Int memory_gb
         String docker
         File monitoring_script
@@ -325,6 +328,7 @@ task GenotypeSTR {
             --spanning-flank-bases ~{spanning_flank_bases} \
             --min-mapping-quality ~{min_mapping_quality} \
             --threads ~{threads} \
+            --parallel-loci ~{parallel_loci} \
             --output-dir ./results \
             --output-prefix ~{base_file_name} \
             ~{if output_detailed_csv then "" else "--skip-detailed-csv"} \
@@ -344,7 +348,7 @@ task GenotypeSTR {
     
     runtime {
         docker: docker
-        cpu: threads
+        cpu: threads * parallel_loci
         memory: "~{memory_gb} GB"
         disks: "local-disk ~{disk_gb} HDD"
         preemptible: preemptible_tries
