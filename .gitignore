@@ -13,3 +13,5 @@ samples.tsv
 test_rung*/
 slurm-*.out
 rung*_inputs.json
+*_inputs.json
+results/

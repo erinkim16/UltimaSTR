@@ -10,6 +10,7 @@ workflow MultiSampleSTRGenotyper {
         File variant_catalog_female
         File variant_catalog_male
         Int threads = 8
+        Int parallel_loci = 1
         Int? memory_gb_override
         Boolean output_detailed_csv = true
         Boolean output_summary_csv = true
@@ -28,6 +29,7 @@ workflow MultiSampleSTRGenotyper {
                 reference_fasta_index = reference_fasta_index,
                 variant_catalog = catalog,
                 threads = threads,
+                parallel_loci = parallel_loci,
                 memory_gb_override = memory_gb_override,
                 output_detailed_csv = output_detailed_csv,
                 output_summary_csv = output_summary_csv
