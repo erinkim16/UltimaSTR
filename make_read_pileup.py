@@ -114,5 +114,11 @@ draw(axs[0], rows, "repeat start (reads anchored on the left flank)")
 draw(axs[1], right_rows, "repeat end (reads anchored on the right flank)")
 axs[0].set_title(f"{a.title}  ({len(reads['spanning'])} spanning, "
                  f"{len(reads['left']) + len(reads['right'])} flanking reads; {a.motif} units coloured)", loc="left")
+from matplotlib.patches import Patch
+fig.legend(handles=[Patch(color="#d4d4d4", label="flanking DNA (outside the repeat)"),
+                    Patch(color="#2a78d6", label=f"one {a.motif} unit"), Patch(color="#8fb8ec", label=f"next {a.motif} unit"),
+                    Patch(color="#555555", label="base that breaks the pattern (error or interruption)")],
+           loc="lower center", ncol=4, frameon=False, fontsize=9, bbox_to_anchor=(0.5, -0.04))
+import os; os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
 fig.tight_layout(); fig.savefig(a.out, dpi=200, bbox_inches="tight")
 print(f"{a.out}: {len(reads['spanning'])} spanning, {len(reads['left'])} left-flanking, {len(reads['right'])} right-flanking")
