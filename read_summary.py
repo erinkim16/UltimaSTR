@@ -14,6 +14,7 @@ Reads whose best score_ratio < 0.85 are the ones the tool throws away; they're s
 usage (on Trillium, from the repo):
   python3 read_summary.py --results results/Vincent_ASD                # default lead list
   python3 read_summary.py --results results/Vincent_ASD --pair ULTWGS_0001:DIP2B_CAC
+  python3 read_summary.py --results results/Vincent_ASD --cohort DIP2B_CAC   # one site, all people
   add --plot to also write read_plots/<sample>_<locus>.png (needs matplotlib)
 Output: read_summary.tsv (one row per read) and a printed summary per lead.
 """
@@ -33,8 +34,16 @@ ap.add_argument("--results", required=True, help="folder with <sample>_detailed.
 ap.add_argument("--pair", action="append", help="SAMPLE:LOCUS (repeatable); replaces the default list")
 ap.add_argument("--out", default="read_summary.tsv")
 ap.add_argument("--plot", action="store_true")
+ap.add_argument("--cohort", metavar="LOCUS",
+                help="check one site in EVERY person: how many reads point past --long repeats")
+ap.add_argument("--long", type=int, default=20, help="with --cohort: what counts as a long read (default 20)")
 a = ap.parse_args()
-pairs = [tuple(p.split(":", 1)) for p in a.pair] if a.pair else LEADS
+if a.cohort:
+    import glob
+    paths = sorted(glob.glob(os.path.join(a.results, "*_detailed.csv")))
+    pairs = [(os.path.basename(p).replace("_detailed.csv", ""), a.cohort) for p in paths]
+else:
+    pairs = [tuple(p.split(":", 1)) for p in a.pair] if a.pair else LEADS
 
 by_sample = defaultdict(set)
 for s, l in pairs: by_sample[s].add(l)
@@ -82,6 +91,20 @@ with open(a.out, "w", newline="") as fh:
 
 groups = defaultdict(list)
 for r in rows_out: groups[(r["sample"], r["locus"])].append(r)
+
+if a.cohort:
+    print(f"\n{a.cohort}: reads per person; 'long' = kept read whose best count / lower bound is > {a.long}")
+    print("sample\treads\tkept\tspanning (top counts)\tlong_spanning\tlong_flanking\tlong_reads")
+    for (s, l) in pairs:
+        g = groups.get((s, l), []); kept = [r for r in g if r["kept"] == "yes"]
+        sp = Counter(r["best_count"] for r in kept if r["read_type"] == "spanning")
+        top = ", ".join(f"{k}x{n}" for k, n in sp.most_common(3))
+        ls = [r for r in kept if r["read_type"] == "spanning" and r["best_count"] > a.long]
+        lf = [r for r in kept if r["read_type"] != "spanning" and r["best_count"] > a.long]
+        print(f"{s}\t{len(g)}\t{len(kept)}\t{top}\t{len(ls)}\t{len(lf)}\t"
+              + " ".join(r["call"] for r in ls + lf))
+    print(f"\nwrote {a.out} ({len(rows_out)} reads)")
+    sys.exit(0)
 for (s, l) in pairs:
     g = groups.get((s, l), [])
     kept = [r for r in g if r["kept"] == "yes"]
