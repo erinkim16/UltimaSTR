@@ -15,3 +15,10 @@ slurm-*.out
 rung*_inputs.json
 *_inputs.json
 results/
+figures/
+*_str_calls*.tsv
+site_quality.tsv
+cohort_distributions.tsv
+str_viewer.html
+read_summary.tsv
+read_plots/
