@@ -23,3 +23,6 @@ str_viewer.html
 read_summary.tsv
 read_plots/
 runs/
+slices/
+*.bam
+*.bai
