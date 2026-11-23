@@ -3,7 +3,7 @@
 A .crai is gzipped text, one line per slice: ref_id, start, span, container_offset,
 slice_offset, slice_size. Bytes of sequence per chromosome track read depth, so
   x_ratio = (bytes/bp on chrX) / median(bytes/bp on chr1-22)   ~1.0 female, ~0.5 male
-  y_ratio = same for chrY                                        ~0 female, clearly >0 male
+  y_ratio = same for chrY                                        ~0.15 female (X-homologous reads), ~0.5 male
 ref_id is the index into the CRAM header's @SQ list, assumed to follow the reference .fai order.
 
 usage: python infer_sex_crai.py --fai ref.fasta.fai --out sex.tsv  sample_id=path.crai ...
@@ -41,7 +41,7 @@ for sid, crai in jobs:
     dens = {n: size[n] / L for n, L in zip(names, lengths) if n in auto | {"chrX", "chrY"}}
     med = statistics.median(dens[n] for n in auto)
     x, y = dens["chrX"] / med, dens["chrY"] / med
-    # provisional cut-offs: check them against Vincent's known sexes before trusting them on TAY
-    sex = "F" if x > 0.8 and y < 0.1 else "M" if 0.35 < x < 0.65 and y > 0.1 else "unknown"
+    # cut-offs calibrated on Vincent_ASD (41 people, 100% agreement with indexcov): F x 0.95-0.99, y 0.12-0.26; M x 0.46-0.52, y 0.40-0.63
+    sex = "F" if x > 0.8 and y < 0.3 else "M" if 0.35 < x < 0.65 and y > 0.3 else "unknown"
     out.write(f"{sid}\t{x:.3f}\t{y:.3f}\t{sex}\t{crai}\n")
     out.flush()
